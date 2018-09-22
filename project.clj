@@ -8,9 +8,14 @@
   :main lhcb-opendata
   :aot :all
   :target-path "target/%s"
+  :source-paths ["src/clojure"]
+  :java-source-paths ["src/java"]
   :dependencies [[org.clojure/clojure "1.9.0"]
+
+                 [camel-snake-kebab "0.4.0"]
                  [gorillalabs/sparkling "2.1.3"]
                  [org.clojars.runa/cliopatra "1.1.0"]
+                 [org.diana-hep/spark-root_2.11 "0.1.16" :exclusions [org.apache.logging.log4j/log4j]]
                  [prismatic/schema "1.1.9"]]
   :profiles {:provided {:dependencies [[com.fasterxml.jackson.core/jackson-annotations "2.6.7"]
                                        [com.fasterxml.jackson.core/jackson-core "2.6.7"]

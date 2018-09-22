@@ -1,12 +1,15 @@
 (ns lhcb-opendata
   (:gen-class)
   (:require [cliopatra.command :as cli]
-            [lhcb-opendata.sql.session :as session]
+            [clojure.string :as str]
             [sparkling
              [conf :as conf]
              [core :as spark]
              [serialization]]
-            [sparkling.sql.types :as types]))
+            [sparkling.sql
+             [dataset :as ds]
+             [spark-session :as session]
+             [types :as types]]))
 
 (defn ensure-trailing-slash
   [s]
@@ -15,6 +18,11 @@
 (defn ensure-leading-slash
   [s]
   (if (.startsWith s "/") s (str "/" s)))
+
+(defn worker
+  [sess workspace]
+  (->> (ds/read-root sess (str workspace "PhaseSpaceSimulation.root"))
+       (ds/show 5 0 true)))
 
 (cli/defcommand lhcb-opendata
   "Work through the LHCb open dataset answering the problems in Clojure and Spark."
@@ -29,7 +37,8 @@
         sess-conf  (cond-> {:app-name "lhcb-opendata" :config spark-conf}
                      master (assoc :master master))]
     (with-open [sess (session/spark-session sess-conf)]
-      (println (session/version sess)))))
+      (println (session/version sess))
+      (worker sess))))
 
 (defn -main
   [& args]
@@ -39,5 +48,14 @@
   (-main "lhcb-opendata"
          "--workspace"   "data"
          "--master"      "local[*]")
+
+  (def spark-session
+    (session/spark-session {:app-name "lhcb-opendata-repl"
+                            :master   "local"
+                            :config   {"spark.sql.shuffle.partitions" "2"
+                                       "spark.default.parallelism"    "2"}}))
+  (.close spark-session)
+
+  (worker spark-session "data/")
 
   )

@@ -1,4 +1,4 @@
-(ns lhcb-opendata.sql.session
+(ns sparkling.sql.spark-session
   (:import [org.apache.spark.api.java JavaSparkContext]
            [org.apache.spark.sql SparkSession]))
 
@@ -9,7 +9,23 @@
              builder
              config))
 
+(defn java-spark-context
+  "Return a JavaSparkContext that can be used by the sparkling.core functions."
+  [^SparkSession session]
+  (JavaSparkContext. (.sparkContext session)))
+
+(defn read
+  "Returns a DataFrameReader from the Spark session."
+  [^SparkSession session]
+  (.read session))
+
+(defn spark-context
+  "Returns the Spark context from a Spark sessison."
+  [^SparkSession session]
+  (.sparkContext session))
+
 (defn spark-session
+  "Builds a Spark session from the arguments or gets the existing one."
   [{:keys [master app-name enable-hive config]}]
   {:pre [(some? app-name)]}
   (cond-> (SparkSession/builder)
@@ -19,20 +35,12 @@
     enable-hive (.enableHiveSupport)
     true        (.getOrCreate)))
 
-(defn spark-context
-  [^SparkSession spark-session]
-  (.sparkContext spark-session))
-
-(defn java-spark-context
-  "Return a JavaSparkContext that can be used by the sparkling.core functions."
-  [^SparkSession spark-session]
-  (JavaSparkContext. (.sparkContext spark-session)))
-
 (defn sql-context
   "Returns an SQLContext that can be used to set SparkSQL configuration properties."
-  [^SparkSession spark-session]
-  (.sqlContext spark-session))
+  [^SparkSession session]
+  (.sqlContext session))
 
 (defn version
-  [^SparkSession spark-session]
+  "Returns the version of Spark in use."
+  [^SparkSession session]
   (.version spark-session))
