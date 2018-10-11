@@ -13,7 +13,9 @@
   :dependencies [[org.clojure/clojure "1.9.0"]
 
                  [camel-snake-kebab "0.4.0"]
+                 [cheshire "5.5.0"]
                  [gorillalabs/sparkling "2.1.3"]
+                 [metasoarous/oz "1.3.1" :exclusions [com.fasterxml.jackson.core/jackson-core]]
                  [org.clojars.runa/cliopatra "1.1.0"]
                  [org.diana-hep/spark-root_2.11 "0.1.16" :exclusions [org.apache.logging.log4j/log4j]]
                  [prismatic/schema "1.1.9"]]
