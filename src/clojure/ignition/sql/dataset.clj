@@ -1,10 +1,11 @@
 (ns ignition.sql.dataset
-  (:refer-clojure :exclude [read])
+  (:refer-clojure :exclude [count group-by map read sort])
   (:require [camel-snake-kebab
              [core :refer [->camelCaseString ->snake_case_string ->SCREAMING_SNAKE_CASE_STRING]]
-             [extras :refer [transform-keys]]])
+             [extras :refer [transform-keys]]]
+            [ignition.sql.function :refer [map-function]])
   (:import [java.util Properties]
-           [org.apache.spark.sql Column Dataset SparkSession SaveMode]))
+           [org.apache.spark.sql Column Dataset Encoder SparkSession SaveMode]))
 
 (defn read-csv
   [^SparkSession session & args]
@@ -98,7 +99,11 @@
   "Groups the Dataset using the specified columns, so that we can run aggregation on them."
   [^Dataset dataset & column-names]
   {:pre [(seq column-names)]}
-  (.groupBy dataset (into-array String column-names)))
+  (.groupBy dataset (into-array Column (clojure.core/map (partial col dataset) column-names))))
+
+(defn map
+  [^Dataset dataset f ^Encoder encoder]
+  (.map dataset (map-function f) encoder))
 
 (defn print-schema
   "Prints the schema to the console in a nice tree format."
@@ -125,6 +130,13 @@
   [^Dataset dataset]
   (.stat dataset))
 
+(defn sort
+  "Returns a new Dataset sorted by the specified columns, all in
+  ascending order, or expressions."
+  [^Dataset dataset & column-names-or-exprs]
+  {:pre [(seq column-names-or-exprs)]}
+  (.sort dataset (into-array column-names-or-exprs)))
+
 (defn summary
   "Computes specified statistics for numeric and string columns.
 
@@ -146,3 +158,8 @@
   [^Dataset dataset & statistics]
   {:pre [(seq statistics)]}
   (.summary dataset (into-array String statistics)))
+
+(defn take
+  "Returns the first n rows in the Dataset."
+  [^Dataset dataset n]
+  (seq (.take dataset n)))

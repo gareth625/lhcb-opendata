@@ -1,4 +1,5 @@
 (ns ignition.sql.spark-session
+  (:refer-clojure :exclude [count group-by map read])
   (:import [org.apache.spark.api.java JavaSparkContext]
            [org.apache.spark.sql SparkSession]))
 
@@ -43,4 +44,4 @@
 (defn version
   "Returns the version of Spark in use."
   [^SparkSession session]
-  (.version spark-session))
+  (.version session))
