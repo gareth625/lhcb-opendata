@@ -1,4 +1,4 @@
-package sparkling.function;
+package ignition.function;
 import java.util.Iterator;
 import java.lang.Object;
 import java.util.Collection;

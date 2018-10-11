@@ -1,4 +1,4 @@
-(ns sparkling.sql.spark-session
+(ns ignition.sql.spark-session
   (:import [org.apache.spark.api.java JavaSparkContext]
            [org.apache.spark.sql SparkSession]))
 
