@@ -1,0 +1,14 @@
+version: "3.7"
+services:
+  lhcb-opendata:
+    image: beakerx/beakerx
+    ports:
+      - "8888:8888"
+    volumes:
+      - type: bind
+        source: /home/vagrant/workspace/experiments/lhcb-opendata/
+        target: /home/beakerx/lhcb-opendata
+      - type: bind
+        source: /home/vagrant/.m2/
+        target: /home/beakerx/.m2/
+    network_mode: "host"
