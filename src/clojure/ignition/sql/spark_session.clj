@@ -1,7 +1,8 @@
 (ns ignition.sql.spark-session
   (:refer-clojure :exclude [count group-by map read])
+  (:require [sparkling.function :as func])
   (:import [org.apache.spark.api.java JavaSparkContext]
-           [org.apache.spark.sql SparkSession]))
+           [org.apache.spark.sql SparkSession SQLContext]))
 
 (defn- apply-config
   [builder config]
@@ -9,6 +10,11 @@
                (.config builder config-key config-val))
              builder
              config))
+
+(defn close
+  "Close the Spark session."
+  [^SparkSession session]
+  (.close session))
 
 (defn java-spark-context
   "Return a JavaSparkContext that can be used by the sparkling.core functions."
@@ -40,6 +46,13 @@
   "Returns an SQLContext that can be used to set SparkSQL configuration properties."
   [^SparkSession session]
   (.sqlContext session))
+
+(defn register-udf3
+  [name func data-type ^SQLContext sqlc]
+  (-> sqlc
+      (.udf)
+      (.register name (func/function3 func) data-type))
+  sqlc)
 
 (defn version
   "Returns the version of Spark in use."

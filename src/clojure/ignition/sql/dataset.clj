@@ -1,5 +1,5 @@
 (ns ignition.sql.dataset
-  (:refer-clojure :exclude [count group-by map read sort])
+  (:refer-clojure :exclude [count first group-by map read sort take])
   (:require [camel-snake-kebab
              [core :refer [->camelCaseString ->snake_case_string ->SCREAMING_SNAKE_CASE_STRING]]
              [extras :refer [transform-keys]]]
@@ -50,7 +50,7 @@
           options (.options (transform-keys ->camelCaseString options)))
         (format "org.dianahep.sparkroot")
         #_(load (into-array String paths))
-        (load (first paths)))))
+        (load (clojure.core/first paths)))))
 
 (def save-mode
   {:overwrite SaveMode/Overwrite
@@ -95,6 +95,11 @@
   {:pre [(seq column-names)]}
   (.describe dataset (into-array String column-names)))
 
+(defn first
+  "Returns the first row."
+  [^Dataset dataset]
+  (.first dataset))
+
 (defn group-by
   "Groups the Dataset using the specified columns, so that we can run aggregation on them."
   [^Dataset dataset & column-names]
@@ -109,6 +114,30 @@
   "Prints the schema to the console in a nice tree format."
   [^Dataset dataset]
   (.printSchema dataset))
+
+(defn sample
+  ([^Dataset dataset fraction]
+   (.sample dataset fraction))
+  ([^Dataset dataset fraction seed]
+   (.sample dataset fraction seed)))
+
+(defn schema
+  [^Dataset dataset]
+  (.schema dataset))
+
+(defn select
+  "Selects a set of columns."
+  [^Dataset dataset columns]
+  {:pre [(seq columns)]}
+  (if (string? (clojure.core/first columns))
+    (.select dataset (clojure.core/first columns) (into-array String (rest columns)))
+    (.select dataset (into-array Column columns))))
+
+(defn select-expr
+  "Selects a set of SQL expressions."
+  [^Dataset dataset sql-exprs]
+  {:pre [(seq sql-exprs)]}
+  (.selectExpr dataset (into-array String sql-exprs)))
 
 (defn show
   ([^Dataset dataset]
@@ -163,3 +192,12 @@
   "Returns the first n rows in the Dataset."
   [^Dataset dataset n]
   (seq (.take dataset n)))
+
+(defn where
+  "Filters the dataset using either column or SQL string expression."
+  [^Dataset dataset expr]
+  (.where dataset expr))
+
+(defn with-column
+  [^Dataset dataset ^String name ^Column col]
+  (.withColumn dataset name col))
