@@ -19,7 +19,10 @@
                  [org.clojars.runa/cliopatra "1.1.0"]
                  [org.diana-hep/spark-root_2.11 "0.1.16" :exclusions [org.apache.logging.log4j/log4j]]
                  [prismatic/schema "1.1.9"]]
-  :profiles {:provided {:dependencies [[com.fasterxml.jackson.core/jackson-annotations "2.6.7"]
+  :profiles {:uberjar {:aot :all}
+             :dev {:jvm-opts ["-Xmx3g"]
+                   :source-paths ["dev"]}
+             :provided {:dependencies [[com.fasterxml.jackson.core/jackson-annotations "2.6.7"]
                                        [com.fasterxml.jackson.core/jackson-core "2.6.7"]
                                        [com.fasterxml.jackson.core/jackson-databind "2.6.7"]
                                        [org.apache.spark/spark-core_2.11 "2.3.1"
@@ -46,6 +49,14 @@
                                                      org.apache.httpcomponents/httpclient
                                                      org.apache.httpcomponents/httpcore
                                                      joda-time]]
+                                       [org.apache.spark/spark-streaming_2.11 "2.3.1"
+                                        :exclusions [com.fasterxml.jackson.core/jackson-annotations
+                                                     com.fasterxml.jackson.core/jackson-core
+                                                     com.fasterxml.jackson.core/jackson-databind
+                                                     commons-codec
+                                                     org.apache.httpcomponents/httpclient
+                                                     org.apache.httpcomponents/httpcore
+                                                     joda-time]]
                                        [org.apache.hadoop/hadoop-client "2.8.4"
                                         :exclusions [com.fasterxml.jackson.core/jackson-annotations
                                                      com.fasterxml.jackson.core/jackson-core
@@ -65,7 +76,4 @@
                                        [org.apache.hadoop/hadoop-aws "2.8.4"
                                         :exclusions [javax.servlet/servlet-api
                                                      javax.servlet.jsp/jsp-api
-                                                     org.mortbay.jetty/servlet-api]]]}
-             :uberjar {:aot :all}
-             :dev {:jvm-opts ["-Xmx3g"]
-                   :source-paths ["dev"]}})
+                                                     org.mortbay.jetty/servlet-api]]]}})

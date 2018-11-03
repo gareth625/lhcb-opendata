@@ -44,8 +44,8 @@
 
 (defn read-root
   [^SparkSession session & args]
+  ;; There seems to be a bug where we can only read a single path.
   (let [[[options] paths] (split-with map? args)]
-    (println options paths)
     (.. (cond-> (.read session)
           options (.options (transform-keys ->camelCaseString options)))
         (format "org.dianahep.sparkroot")
@@ -57,6 +57,10 @@
    :append    SaveMode/Append
    :ignore    SaveMode/Ignore
    :error     SaveMode/ErrorIfExists})
+
+(defn write-json
+  [^Dataset dataset path]
+  (.json (.write dataset) path))
 
 (defn write-parquet
   [^Dataset dataset path & [{:keys [mode partition-by sort-by options]}]]

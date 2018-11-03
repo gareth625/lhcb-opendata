@@ -1,25 +1,20 @@
 # Working Through an LHCb Open Data Set in Clojure and Spark
 
-The following `README.md` is a bit of a brain dump. I'll hopefully
-make it more coherent with time. For now check me out, start a Clojure
-REPL and have a play around in the `lhcb-opendata`
-space. Alternatively use `docker-compose up` to bring up the BeakerX
-notebook, fix it and get going. It's missing a function.
+This project is an example of using [Apache
+Spark](https://apache.spark.org) through the
+[Clojure](https://clojure.org) programming language. I created the
+project a demo of the SparkSQL API and I'm extending it to the
+structured streaming API. Both of these use the Spark Dataset API. I
+based the project on a workbook by the
+[LHCb](http://lhcb-public.web.cern.ch/lhcb-public/) collaboration
+which you can find
+[here](LHCb](http://lhcb-public.web.cern.ch/lhcb-public/)) in
+Python. I was very much inspired by the PySpark walk through
+[here](https://github.com/LucaCanali/Miscellaneous/blob/master/Spark_Notes/Spark_HEP_Examples/LHCb_OpenData_Spark.ipynb).
 
-This is an example project I created for a talk I gave a [Voxx Days
-Bristol 2018](https://voxxeddays.com/bristol/)
-([Me](https://vxdbristol2018.confinabox.com/talk/YKT-9819/Putting_the_Spark_in_Functional_Fashion_Tech_Analytics)). It
-is an example of some data processing using the
-[Clojure](https://clojure.org) programming language to build an
-[Apache Spark](https://apache.spark.org) job.
-
-I needed an open data set and also something to do with that data set
-for this experiment and wasn't confident I could come up with a good
-one myself. I found the
-[LHCb](http://lhcb-public.web.cern.ch/lhcb-public/) open data
-[project](https://github.com/lhcb/opendata-project) done in PySpark
-[here](https://github.com/LucaCanali/Miscellaneous/blob/master/Spark_Notes/Spark_HEP_Examples/LHCb_OpenData_Spark.ipynb)
-and was inspired. Mostly because I did my PhD on LHCb from 2006 to 2011.
+I gave two talks which reference this project in 2018. One at [Voxx
+Days Bristol 2018](https://voxxeddays.com/bristol/)
+([Me](https://vxdbristol2018.confinabox.com/talk/YKT-9819/Putting_the_Spark_in_Functional_Fashion_Tech_Analytics)) and the other at [Big Data](https://www.bigdataconference.lt/) in Vilnius ([Me](https://www.bigdataconference.lt/Gareth-Rogers/)).
 
 This project is a work in progress and not a neatly packaged
 runnable. Hopefully I'll delete this line. It's also not a physics nor
@@ -27,20 +22,70 @@ LHCb analysis tutorial, you should go to the
 [source](https://github.com/lhcb/opendata-project/blob/master/LHCb_Open_Data_Project.ipynb)
 for that.
 
-What this project is an example of how to use the excellent
-[Sparkling](http://gorillalabs.github.io/sparkling/) library to
-construct your Spark code in Clojure. Don't be afraid to check out
-[Flambo](https://github.com/yieldbot/flambo). The code in the project
-is primarily using the Spark Dataset API and it's programmatic
-construction of SQL like statements. There is also an example of how
-to create a User Definited Function (UDF) in Clojure.
 
-I have found Sparkling to be a little out of data with regard to the
-Dataset API and so there is a set of namespaces called `ignition`
-which expose the Spark Java API handling some of the type conversions
-from Clojure to Java. It's building on the Sparkling work and I should
-really figure out to bring it inline with their style and make it a
-PR.
+## Quick Start
+
+If you know Clojure and already have a Clojure development environment
+set up and use [leiningen](https://leiningen.org/) then
+* Clone the repo
+* Check the `:profile/:dev/:jvm-opts/-Xmx3g` setting is appropriate. This starts a JVM with a 3GB heap size.
+* Download the data sets, I have put them in `data/`:
+    * PhaseSpaceSimulation.root: http://opendata.cern.ch/eos/opendata/lhcb/AntimatterMatters2017/data/PhaseSpaceSimulation.root)
+    * B2HHH_MagnetDown: http://opendata.cern.ch/eos/opendata/lhcb/AntimatterMatters2017/data/B2HHH_MagnetDown.root
+    * B2HHH_MagnetUp: http://opendata.cern.ch/eos/opendata/lhcb/AntimatterMatters2017/data/B2HHH_MagnetUp.root
+    * The `PhaseSpaceSimulation.root` is the smallest so I recommend starting with that one
+* Now you can run
+    > lein run --workspace data --dataset simulation --master "local[1]" --filter-selection
+
+where `--workspace` is the location you downloaded the data sets to;
+and `--dataset` can be `simulation`, `magnet-down` or
+`magnet-up`. Hopefully it's obvious which data set they'll try and
+load. The data set names are hard coded and expected to be within the
+workspace directory. To use the out of the box settings you'll need to
+be able to give your JVM 3G. This is not necessary, it's what I've
+hard coded into the `project.clj` file. You can modify this.
+
+The output of `lein run` is a file called `b-mass-plot.json`. This is
+a [Vega-Lite](https://vega.github.io/vega-lite/) file and you can copy
+and paste it into
+[here](https://vega.github.io/editor/#/custom/vega-lite). I'm working
+on getting a better output from this.
+
+With a REPL open in the `lhcb-opendata` namespace you can start to
+explore the code. The
+[PySpark](https://github.com/LucaCanali/Miscellaneous/blob/master/Spark_Notes/Spark_HEP_Examples/LHCb_OpenData_Spark.ipynb)
+workbook will provide some questions and guidance.
+
+
+## Apache Spark and Clojure
+
+Clojure is a dynamic language that runs on the JVM and it has
+excellent support for Java interop. Spark is a general purpose
+distributed data processing engine which is written in Scala but has
+APIs in Java, Python and R all of which allow you to process your data
+sets with SQL. The
+[Sparkling](http://gorillalabs.github.io/sparkling/) is a Clojure
+library that has done a lot of the hard work of enabling Clojure data
+structures to be used naturally with the Spark Java API. It has also
+exposed a lot of the Spark core functionality and some of the Spark
+SQL API as Clojure functions. This project uses Sparkling as well as
+some additionally libraries exposing the more of the Dataset and
+related class APIs. This is done in the `ignition` namespace. Don't be
+afraid to check out [Flambo](https://github.com/yieldbot/flambo)
+another Clojure project exposing the Spark API.
+
+This project uses the Spark Dataset API to reconstruct the B
+candidate's mass and to plot a historgram of the distribution. It
+primarily provides examples of how to use the SQL API programmatically
+and work with structured datasets. This mostly means calling the API
+directly with fairly straight forward conversion of Clojure to Java
+data structures. There is a more involved example of using an User
+Defined Function (UDF) in the Dataset API to reduce a column to bin
+counts. Using a UDF on a column object is a lot easier than writing a
+Spark Dataset function to work with `map` as there you must access the
+row object yourself and also return a new extended row. I've lost the
+example code but it involves a lot more boiler plate.
+
 
 ## Getting Start with Clojure
 
@@ -51,6 +96,7 @@ build a JAR or uberjar, and most importantly start a Clojure REPL. If
 you're completely new to Clojure I recommend checking out [Clojure for
 the Brave and True](https://www.braveclojure.com/) and also installing
 Clojure support for your favourite editor.
+
 
 ## Getting Started With BeakerX
 
@@ -78,14 +124,3 @@ will get you started. You can install Docker and Docker compose from
 [here](https://docs.docker.com/compose/). You can of course install
 BeakerX locally but I had some Python 2 vs 3 issues so went down the
 container route.
-
-## Getting Started with the LHCb Open Data
-
-You will need to download the data sets
- * PhaseSpaceSimulation.root: http://opendata.cern.ch/eos/opendata/lhcb/AntimatterMatters2017/data/PhaseSpaceSimulation.root)
- * B2HHH_MagnetDown: http://opendata.cern.ch/eos/opendata/lhcb/AntimatterMatters2017/data/B2HHH_MagnetDown.root
- * B2HHH_MagnetUp: http://opendata.cern.ch/eos/opendata/lhcb/AntimatterMatters2017/data/B2HHH_MagnetUp.root
-
-and make sure they're available to the project. Then fire up a REPL
-and begin playing. I'll try to create some more obvious entry points
-and make the workbook flow better.
